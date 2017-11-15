@@ -4,8 +4,6 @@
 import math
 
 
-
-
 def uct(wi, ni, t, c=math.sqrt(2)):
     """Upper Confidence bound for Trees
     wi: number of wins
