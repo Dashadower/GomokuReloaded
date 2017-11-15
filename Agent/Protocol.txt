@@ -1,0 +1,25 @@
+User/UI<->Agent Protocol:
+use socket/std i/o to communicate.
+Format: str_CMD argv1 argv2 arv3...argvx
+CMD           ARGV1
+START
+USER_MOVE     (int_x,int_y)
+EXIT
+CHOOSEMOVE
+
+
+Agent<->GameManager Protocol:
+Not needed because Agent Directly calls GameManager Class.
+
+
+GameManager<->MCTS Protocol:
+Communication Method: one way queue.
+MCTS->GameManager Queue: ReturnQueue
+
+After establishing queues:
+MCTS sending move info:
+ReturnQueue: (tuple_position, Int_calctime, int_totalsimulations, int_wonsimulations)
+
+MCTS sending Game Tree debug info on tree update:
+ReturnQueue: ("DEBUG", dict_gametreestructure)
+

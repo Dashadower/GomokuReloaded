@@ -1,0 +1,36 @@
+Structure of Agent
+in descending depth
+
+high           Agent.Agent()
+|              GameManager.GameManager()
+low            MonteCarlo.MCTS()
+
+
+Agent.Agent:
+Initiation requirement: Start of Agent Process.
+Roles:
+1. Handles command line Arguments. Dispatches UI or initiates GameManager According to parameters. Feeds input to
+GameManager(recieved from user using stdin, stdout or sockets).
+2. Directly recieves and sends input, output. Sends it to Gamanager if necessary.
+2-1. Returns AI's move recieved from GameManager.GameManager.
+3. If multiprocessed, Manages all process with the same Name. ex: will forcely kill child processes if requested.
+4. Cleans up GameManager after a game is finished and creates new GameManager if requested.
+
+GameManager.GameManager:
+Initiation requirement: Agent requests new Game.
+Roles:
+1. Creates GameBoard.GameBoard and MonteCarlo.MCTS according to parameters recieved from Agent.Agent.
+2. Constantly updates GameBoard.GameBoard according to Agent.Agent broadcasts and MonteCarlo.MCTS decisions.
+3. After setting up MonteCarlo.MCTS, feed the GameBoard.GameBoard and upon the AI's turn, requests a move from
+MonteCarlo.MCTS.
+4. Updates GameBoard.GameBoard with new AI move data, and sends AI move intent to Agent.Agent.
+5. Requests Game Tree data from MonteCarlo.MCTS for debug purposes if requested by Agent.Agent, and sends it to Agent.
+
+MonteCarlo.MCTS:
+Initiation requirement: GameManager.GameManager spawns MonteCarlo.MCTS with parameters specified by Agent.Agent
+on EVERY AI TURN.
+Roles:
+1. When GameManager.GameManaver requests a move to be made, using the GameBoard.GameBoard, must return a valid move to
+GameManager.GameManager.
+2. All the logical AI functions, including Game Tree creation is handled by MCTS.
+3. (To be made)Must send Game Tree Data if requested by GameManager.

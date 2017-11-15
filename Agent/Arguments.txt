@@ -1,0 +1,13 @@
+Agent.py Command Line Arguments
+
+Usage: Agent.py -options
+Default(No arguments give): Open UI
+-options:
+-silent             Dont spawn window(default)
+-stdcomm            Use standard i/o for interaction
+-socket addr port   Use socket for interaction
+-mcts               Use MCTS(default)
+-maxtimem seconds   maximum time limit for each move(MCTS)
+-maxtime seconds    maximum total time limit for thinking(MCTS)
+-maxsims sims       maximum simulations for each move(MCTS)
+-printdbg           print debug info to stdout

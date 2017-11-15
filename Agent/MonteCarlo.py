@@ -2,7 +2,10 @@
 """Monte Carlo Tree Search solution for Gomoku"""
 
 import math
-
+from Agent.Core import BaseAI
+class MCTS(BaseAI):
+    def __init__(self, board):
+        super().__init__(self, board)
 
 def uct(wi, ni, t, c=math.sqrt(2)):
     """Upper Confidence bound for Trees
