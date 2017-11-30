@@ -130,7 +130,7 @@ while True:
             elif not result:
                 pass
         evaluated_chromosomes.append((ch, fitness))
-    end = time.tim()
+    end = time.time()
     multiinput("*"*10)
     multiinput("Results of Generation" +str(generation))
     evaluated_chromosomes = sorted(evaluated_chromosomes, key=lambda x: x[1], reverse=True)
