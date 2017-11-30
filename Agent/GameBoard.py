@@ -22,33 +22,30 @@ def generate_random_matrix(boardsize):
 
 
 class GameBoard:
-    def __init__(self, size):
+    def __init__(self, size_x, size_y):
         """Creates a GameBoard, with the board size being size tiles"""
-        self.Size = size
-        self.Blackstones = []
-        self.Whitestones = []
+        self.Size = (size_x, size_y)
+        self.BlackStones = []
+        self.WhiteStones = []
         self.Turn = "black"  # Note: Turn states the color who needs to PUT NEXT, not the color that last placed a stone
 
     def addstone(self, position, stonetype):
         """Adds a stone to position(x,y) to the stonetype(black, white)"""
         if stonetype == "black":
-            self.Blackstones.append(position)
-        elif stonetype == "white":
-            self.Whitestones.append(position)
+            self.BlackStones.append(position)
+            self.Turn = "white"
 
-    def removestone(self, position):
-        if position in self.Blackstones:
-            self.Blackstones.remove(position)
-        elif position in self.Whitestones:
-            self.Whitestones.remove(position)
+        elif stonetype == "white":
+            self.WhiteStones.append(position)
+            self.Turn = "black"
 
     def generatehash(self, matrix):
         board_hash = 0
-        for x in range(1, self.Size + 1):
-            for y in range(1, self.Size + 1):
-                if (x, y) in self.Blackstones:
+        for x in range(1, self.Size[0] + 1):
+            for y in range(1, self.Size[1] + 1):
+                if (x, y) in self.BlackStones:
                     piece = 1
-                elif (x, y) in self.Whitestones:
+                elif (x, y) in self.WhiteStones:
                     piece = 2
                 else:
                     piece = 0
