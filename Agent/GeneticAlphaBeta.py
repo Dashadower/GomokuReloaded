@@ -53,10 +53,17 @@ class AlphaBetaActuator():
             for items in startnode.children:
                 result.append((items.value, items.position))
             result = sorted(result,key=lambda x:x[0],reverse=True)
-            return result[0]
+            try:
+                return result[0]
+            except:
+                print("Damn an error has occured")
+                print("result:",result)
+                print("startnode.children:",startnode.children)
+                print("getopenmoves of default board:",self.aiutils.getopenmoves())
+
     def AlphaBeta(self,board,node,depth,isMaximizingPlayer,alpha,beta,tilesearchrange):
         #print("CURRENT POSITION",move,isMaximizingPlayer)
-        if WinChecker(board).checkboth() or depth == 0:
+        if WinChecker(board).checkboth() or depth == 0 or BaseAI(board, self.AIStoneType).getopenmoves() == 0:
             ganalyst = Analyzer(board, self.analyzer[0],self.analyzer[1],self.analyzer[2],self.analyzer[3])
             return ganalyst.grader(self.AIStoneType)-ganalyst.grader(self.EnemyStoneType)
 

@@ -81,12 +81,14 @@ class AlphaBetaActuator:
                 self.Zobrist_Hash_Table = []
                 self.CurrentDepth = 1
                 self.aiutils = BaseAI(board, self.AIStoneType)
+                hashtable_size = []
                 for depth in range(1, self.PlyDepth+1):
                     startnode = Node(None, None, None)
                     self.alphabeta(self.aiutils.duplicateboard(board), startnode, depth, True, -10000000, 10000000,
                                    self.OpenSearchRange, self.CurrentDepth)
                     self.CurrentDepth += 1
                     print("DEPTH", depth, "HASH SIZE:", len(self.Zobrist_Hash_Table))
+                    hashtable_size.append(len(self.Zobrist_Hash_Table))
                 print("*"*10)
                 print(len(startnode.children))
                 result = []
@@ -95,9 +97,16 @@ class AlphaBetaActuator:
                     result.append((items.value, items.position))
                 result = sorted(result, key=lambda x: x[0], reverse=True)
                 print("RESULT:", result)
-                self.OutputQueue.put(result[0])
+                self.OutputQueue.put((result[0],hashtable_size))
 
     def alphabeta(self, board, node, depth, ismaximizingplayer, alpha, beta, tilesearchrange, originaldepth):
+        hashval = board.generatehash(self.Matrix)
+        for hash in self.Zobrist_Hash_Table:
+            if hash[0] == hashval:
+                if hash[2] < originaldepth - 1:
+                    self.Zobrist_Hash_Table.remove(hash)
+                else:
+                    return hash[1]
         # print("CURRENT POSITION",move,isMaximizingPlayer)
         if WinChecker(board).checkboth() or depth == 0:
             hashval = board.generatehash(self.Matrix)

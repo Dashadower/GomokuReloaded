@@ -87,9 +87,13 @@ class GameManager:
         else:
             self.writetotext("AI Move Recieved")
             self.progressbar.stop()
-            self.writetotext("평가함수 결과(Grader()):"+str(data[0])+" 위치:"+str(data[1]))
-            self.AI.addaistone(data[1])
-            if data[0] >= 9900000:
+            x = 1
+            for item in data[1]:
+                self.writetotext("Depth %d hashtable size: %d"%(x, item))
+                x += 1
+            self.writetotext("평가함수 결과(Grader()):"+str(data[0][0])+" 위치:"+str(data[0][1]))
+            self.AI.addaistone(data[0][1])
+            if data[0][0] >= 9900000:
 
                 self.writetotext("인공지능의 필승입니다 ^^")
             self.writetotext("계산시간(입출력 시간 포함):" + str(time.time() - self.CalcTime))

@@ -1,4 +1,4 @@
-import numpy, random, sys, time
+import numpy, random, sys, time, shelve
 from AnalyzerOptimized import WinChecker
 from GameBoard import GameBoard
 from GeneticAlphaBeta import AlphaBeta
@@ -18,16 +18,33 @@ game_searchrange = 1
 game_playdepth = 2
 
 
+def multiinput(msg):
+    print(msg)
+    sys.stdout.flush()
+
+def open_traindata():
+
+    pool = []
+    data = shelve.open("traindata")
+    if data.keys():
+        for item in data:
+            pool.append(data[item][0])
+            generation = data[item][1]
+        data.close()
+        multiinput("Loaded training data")
+    else:
+        generation = 1
+        for x in range(starting_population):
+            generatedchromo = []
+            for x in range(4):
+                generatedchromo.append(generate_random_gene())
+            pool.append(generatedchromo)
+        multiinput("Created chromosomes from scratch")
+    return pool, generation
+
 
 def generate_random_gene():
     return round(numpy.random.normal(0.0, default_generation_deviation), 2)
-
-start_chromosomes = []
-for j in range(starting_population):
-    g_x = []
-    for h in range(4):
-        g_x.append(generate_random_gene())
-    start_chromosomes.append(g_x)
 
 
 def play_game(c1, c2):
@@ -53,22 +70,21 @@ def play_game(c1, c2):
             return 0
 
 
-def multiinput(msg):
-    print(msg)
-    sys.stdout.flush()
-generation = 1
+start_chromosomes, generation = open_traindata()
 multiinput("START GENES:")
 multiinput(start_chromosomes)
 
 def select_opponent(subject, pool, exclusion_pool):
-    while True:
-        chosen = random.choice(pool)
-        if chosen == subject:
-            pass
-        elif chosen in exclusion_pool:
-            pass
-        else:
-            return chosen
+    pool = [item for item in pool if item not in exclusion_pool]
+    if len(pool) == 2:
+        return pool[0] if pool[0] != subject else pool[1]
+    else:
+        while True:
+            chosen = random.choice(pool)
+            if chosen == subject:
+                pass
+            else:
+                return chosen
 
 while True:
     multiinput("****************")
@@ -116,20 +132,23 @@ while True:
 
     for item in evaluated_chromosomes:
         tmp_list.append(item[0])
+    ncr = 0
     for ch in fresh_chromosome:
         fitness = 0
         ex_pool = []
         for tc in range(simulations):
             opponent = select_opponent(ch, tmp_list, ex_pool)
             ex_pool.append(opponent)
-            result = play_game(chromosome, opponent)
-            if result == chromosome:
+            result = play_game(ch, opponent)
+            if result == ch:
                 fitness += 1
             elif result == opponent:
                 fitness -= 1
             elif not result:
                 pass
         evaluated_chromosomes.append((ch, fitness))
+        ncr += 1
+        multiinput("%d of %d new chromosomes evaluated"%(ncr, len(fresh_chromosome)))
     end = time.time()
     multiinput("*"*10)
     multiinput("Results of Generation" +str(generation))
@@ -141,6 +160,12 @@ while True:
     for hj in evaluated_chromosomes:
         start_chromosomes.append(hj[0])
     generation += 1
+    shv = shelve.open("traindata")
+    dx = 0
+    for n in start_chromosomes:
+        shv[str(dx)] = (n, generation)
+        dx += 1
+    shv.close()
 
 
 

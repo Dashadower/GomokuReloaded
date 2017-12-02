@@ -12,8 +12,8 @@ class BaseAI:
 
     def getopenmoves(self):
         openmoves = []
-        for x in range(self.Board.Size[0]):
-            for y in range(self.Board.Size[1]):
+        for x in range(1, self.Board.Size[0]+1):
+            for y in range(1, self.Board.Size[1]+1):
                 if (x, y) in self.Board.WhiteStones or (x, y) in self.Board.BlackStones:
                     pass
                 else:
@@ -31,7 +31,7 @@ class BaseAI:
                 if x > board.Size[0] or x <= 0 or y > board.Size[1] or y <= 0:
                     pass
                 else:
-                    if (x,y) not in board.WhiteStones+board.BlackStones:
+                    if (x, y) not in board.WhiteStones+board.BlackStones:
                         openmoves.append((x, y))
         setted = set(openmoves)
         return list(setted)
@@ -58,7 +58,7 @@ class BaseAI:
 
 if __name__ == "__main__":
     b = GameBoard.GameBoard(15,15)
-    b.addstone((3,5),"black")
-    b.addstone((3,6),"black")
-    g = BaseAI(b,"black")
+    b.addstone((3, 5), "black")
+    b.addstone((3, 6), "black")
+    g = BaseAI(b, "black")
     print(g.getlimitedopenmoves(b))

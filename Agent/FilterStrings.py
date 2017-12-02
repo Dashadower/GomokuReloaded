@@ -27,7 +27,7 @@ Open2 = [
     "w-o-o-"
 
 ]
-Open2Val = 2
+Open2Val = 5
 # -----------------------------------------
 # Open3 is a threat in which all the ends of 3 repetitive stones are open
 # The third and fourth are also counted as Open3
@@ -49,7 +49,7 @@ Open3Val = 20
 Open4 = [
     "-oooo-"  # TSS OK
 ]
-Open4Val = 250
+Open4Val = 500
 # -----------------------------------------
 # Open5 is a win condition.
 Open5 = [
@@ -59,7 +59,7 @@ Open5 = [
     "ooooo-",  # TSS OK same as above
     "wooooo"
 ]
-Open5Val = 10000
+Open5Val = 100000
 # -----------------------------------------
 # Closed4 is a threat in which one of the ends of 4 repetitive stones are open
 # If the defender does not block the other end, Attacker is guaranteed to win next turn.
