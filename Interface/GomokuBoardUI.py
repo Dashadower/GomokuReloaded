@@ -3,7 +3,7 @@ import tkinter
 
 
 class GomokuBoardUI(tkinter.Frame):
-    def __init__(self, gameboard, master, gamemanager, gridsize=50, buffer=100):
+    def __init__(self, gameboard, master, gamemanager, gridsize=50, buffer=20):
         self.master = master
         tkinter.Frame.__init__(self, self.master)
         self.pack(expand=tkinter.YES, fill=tkinter.BOTH)
@@ -110,8 +110,8 @@ class GomokuBoardUI(tkinter.Frame):
 
 
 if __name__ == "__main__":
-    from GameBoard import GameBoard
-    board = GameBoard(10, 10)
+    from Agent.GameBoard import GameBoard
+    board = GameBoard(15, 15)
     root = tkinter.Tk()
     boardui = GomokuBoardUI(board, root, None)
     boardui.PlayerTurn = True

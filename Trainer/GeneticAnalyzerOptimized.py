@@ -1,4 +1,4 @@
-from FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open5Val
+from Agent.FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open5Val
 
 
 class Analyzer:

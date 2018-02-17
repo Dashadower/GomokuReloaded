@@ -1,9 +1,7 @@
-from Core import BaseAI
-from GameBoard import GameBoard
+from Agent.AnalyzerOptimized import WinChecker
+from Agent.Core import BaseAI
 from GeneticAnalyzerOptimized import Analyzer
-from AnalyzerOptimized import WinChecker
-import time, random, multiprocessing
-from collections import Counter
+
 
 class AlphaBeta(BaseAI):
     def __init__(self,initialgamestate,aistonetype, plydepth,tilesearchrange,analyzerparameter):

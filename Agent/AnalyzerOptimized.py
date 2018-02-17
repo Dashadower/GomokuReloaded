@@ -198,8 +198,8 @@ class WinChecker(Analyzer):
         patterns = super().grader("white")
         if patterns >= Open5Val:
             return True
-        else:
-            return False
+
+        return False
 
     def check(self, stonetype):
         """Check if a 5x exists for StoneType in self.GameBoard. Pretty much a copy of Analyzer() :p"""
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     # print(refree.CheckBoth())
     endtime = time.time()
     print("Total calculation time:", endtime - starttime if not endtime - starttime == 0.0 else "0.0 (<0.0001 seconds)")
-    from GomokuBoardUI import GomokuBoardUI
+    from Interface.GomokuBoardUI import GomokuBoardUI
     from tkinter import Tk
 
     root = Tk()

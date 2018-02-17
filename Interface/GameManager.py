@@ -1,5 +1,5 @@
 
-import AnalyzerOptimized
+import Agent.AnalyzerOptimized
 import tkinter
 import time
 import os
@@ -18,7 +18,7 @@ class GameManager:
         self.AI = aiobject
         self.AIStoneType = self.AI.AIStoneType
         self.PlayerStoneType = "black" if self.AIStoneType == "white" else "white"
-        self.refree = AnalyzerOptimized.WinChecker(self.AI.Board)
+        self.refree = Agent.AnalyzerOptimized.WinChecker(self.AI.Board)
         self.StartTime = None
         self.CalcTime = None
 

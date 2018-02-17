@@ -1,8 +1,13 @@
-import numpy, random, sys, time, shelve
-from AnalyzerOptimized import WinChecker
-from GameBoard import GameBoard
+import numpy
+import random
+import shelve
+import sys
+import time
 from GeneticAlphaBeta import AlphaBeta
-from GeneticAnalyzerOptimized import Analyzer
+
+from Agent.AnalyzerOptimized import WinChecker
+from Agent.GameBoard import GameBoard
+
 # Genetic Algorithm Approach to adjust weights in FilterStrings.py for Analyzer function
 # Refer to FilterStrings.py for more info on weights.
 template = [2, 250, 10000, 20]
