@@ -1,12 +1,12 @@
 from Core import BaseAI
-from AnalyzerOptimized import Analyzer, WinChecker
+from AnalyzerOptimized import Analyzer, WinChecker, ExtensiveAnalysis
 import multiprocessing
 from queue import Empty
 from GameBoard import generate_random_matrix
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, initialgamestate, aistonetype, plydepth, tilesearchrange):
+    def __init__(self, initialgamestate, aistonetype, plydepth, tilesearchrange, use_xta, xta_coefficient):
         BaseAI.__init__(self, initialgamestate, aistonetype)
         self.EnemyStoneType = "black" if self.AIStoneType == "white" else "white"
         self.PlyDepth = plydepth
@@ -18,11 +18,12 @@ class AlphaBeta(BaseAI):
         self.Process = None
         self.datalist = []
         self.PID = None
-
+        self.Use_XTA = True if use_xta else False
+        self.XTA_Coefficient = xta_coefficient
     def initiateprocess(self):
         p = multiprocessing.Process(target=AlphaBetaActuator,
                                     args=(self.This2ActuatorQ, self.Actuator2ThisQ, self.AIStoneType,
-                                          self.PlyDepth, self.OpenSearchRange))
+                                          self.PlyDepth, self.OpenSearchRange, self.Use_XTA, self.XTA_Coefficient))
         p.daemon = True
         self.Process = p
         p.start()
@@ -65,7 +66,7 @@ class Node:
 
 
 class AlphaBetaActuator:
-    def __init__(self, inputqueue, outputqueue, aistonetype, depth, tilesearchrange):
+    def __init__(self, inputqueue, outputqueue, aistonetype, depth, tilesearchrange, use_xta, xta_coefficient):
         self.AIStoneType = aistonetype
         self.EnemyStoneType = "black" if self.AIStoneType == "white" else "white"
         self.InputQueue = inputqueue
@@ -78,6 +79,8 @@ class AlphaBetaActuator:
         self.CurrentDepth = 1
         self.Iterations = 0
         self.TerminalNodes = 0
+        self.Use_XTA = True if use_xta else False
+        self.XTA_Coefficient = xta_coefficient
         self.checkforwork()
 
     def checkforwork(self):
@@ -88,6 +91,8 @@ class AlphaBetaActuator:
 
                 self.aiutils = BaseAI(board, self.AIStoneType)
                 hashtable_size = []
+                print("*" * 10)
+                self.Zobrist_Hash_Table = []
                 for depth in range(1, self.PlyDepth+1):
                     self.TerminalNodes = 0
                     startnode = Node(None, None, None, -10000000, 10000000)
@@ -96,13 +101,14 @@ class AlphaBetaActuator:
                     self.CurrentDepth += 1
                     print("DEPTH", depth, "HASH SIZE:", len(self.Zobrist_Hash_Table))
                     hashtable_size.append(len(self.Zobrist_Hash_Table))
-                print("*"*10)
+
                 best = max(startnode.children, key=lambda x: x.value)
                 print("RESULT:", best.position, best.value, "ITERATIONS:", self.Iterations, "TERMINAL_NODES:", self.TerminalNodes)
                 self.OutputQueue.put(((best.value, best.position), hashtable_size))
 
     def alphabeta(self, board, node, depth, ismaximizingplayer, tilesearchrange, originaldepth):
         self.Iterations += 1
+        # Hash table is disabled for now until I'm sure it helps with performance
         """hashval = board.generatehash(self.Matrix)
         for hash in self.Zobrist_Hash_Table:
             if hash[0] == hashval:
@@ -120,43 +126,41 @@ class AlphaBetaActuator:
                     else:
                         return hash[1]"""
             ganalyst = Analyzer(board)
-            # aiscore = ganalyst.grader(self.AIStoneType if ismaximizingplayer else self.EnemyStoneType)
             aiscore = ganalyst.grader(self.AIStoneType)
-            # enemyscore = ganalyst.grader(self.EnemyStoneType if ismaximizingplayer else self.AIStoneType)
             enemyscore = ganalyst.grader(self.EnemyStoneType)
-            #self.Zobrist_Hash_Table.append((hashval, aiscore-enemyscore, originaldepth))
-            if self.TerminalNodes % 1000 == 0:
-                print("*" * 10)
-                print(board.BlackStones)
-                print("*" * 10)
-                print(board.WhiteStones)
-                print("*" * 10)
-            return aiscore-enemyscore
+            if self.Use_XTA:
+                coefficient = ExtensiveAnalysis(board).grader(self.AIStoneType)
+                # Hash table is disabled for now until I'm sure it helps with performance
+                # self.Zobrist_Hash_Table.append((hashval, aiscore - enemyscore - (self.XTA_Coefficient*coefficient), originaldepth))
+                return aiscore - enemyscore - (self.XTA_Coefficient*coefficient)
+
+            else:
+                # Hash table is disabled for now until I'm sure it helps with performance
+                #self.Zobrist_Hash_Table.append((hashval, aiscore - enemyscore, originaldepth))
+                return aiscore - enemyscore
         if ismaximizingplayer:
             v = -10000000
             for move in self.aiutils.getlimitedopenmoves(board, self.OpenSearchRange):
-                g = Node(move, None, node, -10000000, 10000000)
+                g = Node(move, None, node, node.alpha, node.beta)
                 if depth == 1: self.TerminalNodes += 1
                 dupedboard = self.aiutils.duplicateboard(board)
                 dupedboard.addstone(move, self.AIStoneType)
                 v = max(v, self.alphabeta(dupedboard, g, depth-1, False, tilesearchrange, originaldepth))
                 g.value = v
-                g.alpha = max(g.alpha, v)
-                if g.beta <= g.alpha:
-                    print("BETA CUTOFF")
+                node.alpha = max(node.alpha, v)
+                if node.beta <= node.alpha:
                     break
             return v
         else:
             v = 10000000
             for move in self.aiutils.getlimitedopenmoves(board, self.OpenSearchRange):
-                g = Node(move, None, node, -10000000, 10000000)
+                g = Node(move, None, node, node.alpha, node.beta)
                 if depth == 1: self.TerminalNodes += 1
                 dupedboard = self.aiutils.duplicateboard(board)
                 dupedboard.addstone(move, self.EnemyStoneType)
                 v = min(v, self.alphabeta(dupedboard, g, depth-1, True, tilesearchrange, originaldepth))
                 g.value = v
-                beta = min(g.beta, v)
-                if g.beta <= g.alpha:
-                    print("ALPHA CUTOFF")
+                node.beta = min(node.beta, v)
+                if node.beta <= node.alpha:
                     break
             return v

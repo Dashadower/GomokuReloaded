@@ -51,7 +51,8 @@ def onnewgame():
     if configreader.get("GomokuBot", "MODE") == "SINGLE":
         print("SINGLE")
         ai = AlphaBetaParallel.AlphaBeta(gboard,"white", int(configreader.get("GomokuBot", "DIFFICULTY")),
-                                         int(configreader.get("GomokuBot", "SEARCHRANGE")))
+                                         int(configreader.get("GomokuBot", "SEARCHRANGE")), int(configreader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS")),
+                                         float(configreader.get("GomokuBot", "EA_COEFFICIENT")))
         screen.InfoBox.config(state=tkinter.NORMAL)
         screen.InfoBox.insert(tkinter.END, "SingleProcess\n")
         screen.InfoBox.config(state=tkinter.DISABLED)
@@ -65,7 +66,8 @@ def onnewgame():
                                configreader.get("GomokuBot", "MULTIPROCESS_CUTOFF")))
         screen.InfoBox.config(state=tkinter.DISABLED)
         ai = AlphaBetaParallel.AlphaBeta(gboard, "white", int(configreader.get("GomokuBot", "DIFFICULTY")),
-                                         int(configreader.get("GomokuBot", "SEARCHRANGE")))
+                                         int(configreader.get("GomokuBot", "SEARCHRANGE")),int(configreader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS")),
+                                         float(configreader.get("GomokuBot", "EA_COEFFICIENT")))
         result = ai.initiateprocess()
         processes, pids = [result[0]], [result[1]]
 

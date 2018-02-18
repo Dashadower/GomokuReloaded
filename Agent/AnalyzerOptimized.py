@@ -1,4 +1,4 @@
-from FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open2Val, Open3Val, Open4Val, Closed4Val, Open5Val
+from FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open2Val, Open3Val, Open4Val, Closed4Val, Open5Val, Open3Val_Ex, Open4Val_Ex, Closed4Val_Ex
 
 
 class Analyzer:
@@ -185,6 +185,154 @@ class Analyzer:
             return Closed4Val
         else:
             return 0
+
+class ExtensiveAnalysis:
+        def __init__(self, board):
+            self.Board = board
+
+        def incrementdictbykey(self, keyval, increment_value):
+            self.openthreatpositions[str(keyval)] += self.openthreatpositions.get(str(keyval), 0) + increment_value
+        def grader(self, stonetype):
+            """
+            Returns a score of self.Board from the stonetype perspective
+            Current Execution time: O(n^2)
+            I should try to minimize this"""
+            coefficient = 0
+            passedstones = []
+            self.openthreatpositions = {}
+            mystones = self.Board.BlackStones if stonetype == "black" else self.Board.WhiteStones
+            enemystones = self.Board.WhiteStones if stonetype == "black" else self.Board.BlackStones
+
+            # Check Vertical repetitions
+            for stone in sorted(enemystones, key=lambda x: x[1]):
+                x, y = stone
+                if (x, y) not in passedstones:
+                    data = ""
+                    openpos = []
+                    for g in range(0, 6):
+                        if (x, y-1+g) in enemystones and (x, y-1+g) not in passedstones:
+                            data += "o"
+                            passedstones.append((x, y-1+g))
+                        elif (x, y-1+g) in mystones:
+                            data += "x"
+                            if g != 0:
+                                break    # This fixed the Problem!!!!! Push 9818399
+                        elif y-1+g <= 0 or y-1+g > self.Board.Size[1]:
+                            data += "w"
+                        elif (x, y-1+g) not in mystones and (x, y-1+g) not in enemystones:
+                            data += "-"
+                            openpos.append((x - 1 + g, y + 1 - g))
+                    if data.count("o") >= 2:
+                        val = self.parser(data)
+                        if val:
+                            for stone in openpos:
+                                coefficient += val
+
+            # Check Horizontal repetitions
+            passedstones = []
+            for stone in sorted(enemystones, key=lambda x: x[0]):
+                x, y = stone
+                if (x, y) not in passedstones:
+                    data = ""
+                    openpos = []
+                    for g in range(0, 6):
+                        if (x-1+g, y) in enemystones and (x-1+g, y) not in passedstones:
+                            data += "o"
+                            passedstones.append((x-1+g, y))
+                        elif (x-1+g, y) in mystones:
+                            data += "x"
+                            if g != 0:
+                                break    # This fixed the Problem!!!!! Push 9818399
+                        elif x-1+g <= 0 or x-1+g > self.Board.Size[0]:
+                            data += "w"
+                        elif (x-1+g, y) not in mystones and (x-1+g, y) not in enemystones:
+                            data += "-"
+                            openpos.append((x - 1 + g, y + 1 - g))
+
+                    if data.count("o") >= 2:
+                        val = self.parser(data)
+                        if val:
+                            for stone in openpos:
+                                coefficient += val
+
+            passedstones = []
+
+            for stone in sorted(enemystones, key=lambda x: x[0]+x[1]):  # stone coord: (x-y,y+1)
+                x, y = stone
+                if (x, y) not in passedstones:
+                    data = ""
+                    openpos = []
+                    for g in range(0, 6):
+                        if (x-1+g, y-1+g) in enemystones and (x-1+g, y-1+g) not in passedstones:
+                            data += "o"
+                            passedstones.append((x-1+g, y-1+g))
+                        elif (x-1+g, y-1+g) in mystones:
+                            data += "x"
+                            if g != 0:
+                                break
+                        elif x-1+g <= 0 or x-1+g > self.Board.Size[0] or y-1+g <= 0 or y-1+g > self.Board.Size[1]:
+                            data += "w"
+                        elif (x-1+g, y-1+g) not in mystones and (x-1+g, y-1+g) not in enemystones:
+                            data += "-"
+                            openpos.append((x - 1 + g, y + 1 - g))
+
+                    if data.count("o") >= 2:
+                        val = self.parser(data)
+                        if val:
+                            for stone in openpos:
+                                coefficient += val
+            passedstones = []
+
+            # check 5o`clock diagonal from 1,13 to 13,1 repetitions
+            for stone in sorted(enemystones, key=lambda x: x[1]-x[0], reverse=True):
+                # stone coord(x-self.Board.Size[1]+y,y),but each time in g traverse, sub from y and add to x
+                x, y = stone
+                if (x, y) not in passedstones:
+                    data = ""
+                    openpos = []
+                    for g in range(0, 6):
+                        if (x-1+g, y+1-g) in enemystones and (x-1+g, y+1-g) not in passedstones:
+                            data += "o"
+                            passedstones.append((x-1+g, y+1-g))
+                        elif (x-1+g, y+1-g) in mystones:
+                            data += "x"
+                            if g != 0:
+                                break
+                        elif x-1+g <= 0 or x-1+g > self.Board.Size[0] or y+1-g <= 0 or y+1-g > self.Board.Size[1]:
+                            data += "w"
+                        elif (x-1+g, y+1-g) not in mystones and (x-1+g, y+1-g) not in enemystones:
+                            data += "-"
+                            openpos.append((x - 1 + g, y + 1 - g))
+
+                    if data.count("o") >= 2:
+                        val = self.parser(data)
+                        if val:
+                            for stone in openpos:
+                                coefficient += val
+            return coefficient
+
+
+        def parser(self, pattern):
+            """Returns correspoding value for pattern.
+            Added for simplicity"""
+            if pattern in Open2:
+
+                return False
+            elif pattern in Open3:
+
+                return Open3Val_Ex
+            elif pattern in Open4:
+
+                return Open4Val_Ex
+            elif pattern in Open5:
+
+                return False
+            elif pattern in Closed4:
+                return Closed4Val_Ex
+            else:
+                return False
+
+
 
 
 class WinChecker(Analyzer):

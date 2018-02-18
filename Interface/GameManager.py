@@ -66,7 +66,6 @@ class GameManager:
         self.AI.addopponentstone(coords)
         self.writetotext("Human stone"+str(coords))
         self.GomokuBoard.PlayerTurn = False
-        print(self.AI.Board.BlackStones, self.AI.Board.WhiteStones)
         if not self.checkwin():
             self.progressbar.start()
             self.writetotext("인공지능의 차례입니다.")
