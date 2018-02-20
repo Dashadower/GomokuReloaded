@@ -23,8 +23,8 @@ class GameManager:
         self.CalcTime = None
 
     def start(self):
-        self.writetotext("검색 깊이: "+str(self.AI.PlyDepth)+" 수(PLY) 검색 범위: "+str(self.AI.OpenSearchRange)+"칸(TILE)")
-        tkinter.messagebox.showinfo("", "플레이어의 차례입니다")
+        self.writetotext("Search depth: "+str(self.AI.PlyDepth)+" Depth(PLY) Search Range: "+str(self.AI.OpenSearchRange)+"tiles")
+        tkinter.messagebox.showinfo("", "Player's turn")
         self.GomokuBoard.PlayerTurn = True
         self.StartTime = time.time()
 
@@ -43,22 +43,22 @@ class GameManager:
 
     def checkwin(self):
         if self.refree.check(self.AIStoneType):
-            tkinter.messagebox.showinfo("", "컴퓨터의 승리입니다")
+            tkinter.messagebox.showinfo("", "Computer Wins")
             self.GomokuBoard.PlayerTurn = False
-            self.writetotext("AI WIN")
-            self.writetotext("총 게임시간(입출력 시간 포함):" + str(time.time() - self.StartTime))
+            self.writetotext("Computer wins.")
+            self.writetotext("Total game time(including input/output):" + str(time.time() - self.StartTime))
             return True
         elif self.refree.check(self.PlayerStoneType):
-            tkinter.messagebox.showinfo("", "인간의 승리입니다.")
+            tkinter.messagebox.showinfo("", "Player Wins.")
             self.GomokuBoard.PlayerTurn = False
-            self.writetotext("USER WIN")
-            self.writetotext("총 게임시간(입출력 시간 포함):" + str(time.time() - self.StartTime))
+            self.writetotext("Player wins.")
+            self.writetotext("Total game time(including input/output):" + str(time.time() - self.StartTime))
             return True
         elif not self.AI.getopenmoves():
-            tkinter.messagebox.showinfo("", "무승부 입니다")
+            tkinter.messagebox.showinfo("", "It's a Draw")
             self.GomokuBoard.PlayerTurn = False
             self.writetotext("DRAW")
-            self.writetotext("총 게임시간(입출력 시간 포함):" + str(time.time() - self.StartTime))
+            self.writetotext("Total game time(including input/output):" + str(time.time() - self.StartTime))
         else:
             return False
 
@@ -68,7 +68,7 @@ class GameManager:
         self.GomokuBoard.PlayerTurn = False
         if not self.checkwin():
             self.progressbar.start()
-            self.writetotext("인공지능의 차례입니다.")
+            self.writetotext("Computer's turn.")
             self.chooseaimove()
 
     def chooseaimove(self):
@@ -90,12 +90,12 @@ class GameManager:
             for item in data[1]:
                 self.writetotext("Depth %d hashtable size: %d"%(x, item))
                 x += 1
-            self.writetotext("평가함수 결과(Grader()):"+str(data[0][0])+" 위치:"+str(data[0][1]))
+            self.writetotext("Evaluation Function value(Grader()):"+str(data[0][0])+" 위치:"+str(data[0][1]))
             self.AI.addaistone(data[0][1])
             if data[0][0] >= 9900000:
 
-                self.writetotext("인공지능의 필승입니다 ^^")
-            self.writetotext("계산시간(입출력 시간 포함):" + str(time.time() - self.CalcTime))
+                self.writetotext("Computer is to win for certain ^^")
+            self.writetotext("Total game time(including input/output):" + str(time.time() - self.CalcTime))
             self.GomokuBoard.clear()
             self.GomokuBoard.draw()
             self.MainUI.update()

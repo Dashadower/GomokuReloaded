@@ -1,12 +1,14 @@
-from Core import BaseAI
-from AnalyzerOptimized import Analyzer, WinChecker, ExtensiveAnalysis
+from Agent.Core import BaseAI
+from Agent.AnalyzerOptimized import Analyzer, WinChecker, ExtensiveAnalysis
 import multiprocessing
+import signal
+import os
 from queue import Empty
-from GameBoard import generate_random_matrix
+from Agent.GameBoard import generate_random_matrix
 
 
 class AlphaBeta(BaseAI):
-    def __init__(self, initialgamestate, aistonetype, plydepth, tilesearchrange, use_xta, xta_coefficient):
+    def __init__(self, initialgamestate, aistonetype, plydepth, tilesearchrange, use_xta, xta_coefficient, remote = True):
         BaseAI.__init__(self, initialgamestate, aistonetype)
         self.EnemyStoneType = "black" if self.AIStoneType == "white" else "white"
         self.PlyDepth = plydepth
@@ -14,12 +16,21 @@ class AlphaBeta(BaseAI):
         self.Actuator2ThisQ = multiprocessing.Queue()
         self.OpenSearchRange = tilesearchrange
 
-        self.ReportHook = print
+        self.ReportHook = lambda x: None
         self.Process = None
         self.datalist = []
         self.PID = None
         self.Use_XTA = True if use_xta else False
         self.XTA_Coefficient = xta_coefficient
+
+        self.Remote = remote
+
+    def startalphabeta(self):
+        if self.Remote:
+            return self.initiateprocess()
+        else:
+            self.Actuator = AlphaBetaActuator(self.This2ActuatorQ, self.Actuator2ThisQ, self.AIStoneType, self.PlyDepth,
+                                              self.OpenSearchRange, self.Use_XTA, self.XTA_Coefficient)
     def initiateprocess(self):
         p = multiprocessing.Process(target=AlphaBetaActuator,
                                     args=(self.This2ActuatorQ, self.Actuator2ThisQ, self.AIStoneType,
@@ -31,19 +42,27 @@ class AlphaBeta(BaseAI):
 
         return self.Process, self.PID
 
+    def killprocess(self):
+        self.This2ActuatorQ.put("EXIT")
+        if self.PID:
+            os.kill(self.PID, signal.SIGTERM)
     def choosemove(self):
         moves = self.getlimitedopenmoves(self.Board, self.OpenSearchRange)
         searchtiles = len(moves)
-        self.ReportHook("1PLY 검색 타일 수:"+str(searchtiles))
+        self.ReportHook("1PLY Search tiles:"+str(searchtiles))
         self.This2ActuatorQ.put(("START", self.Board))
 
     def getresult(self):
+        """Return data type:
+        ((bestmove_eval, bestmove_position_tuple), hashtable_size)"""
         try:
             data = self.Actuator2ThisQ.get_nowait()
         except Empty:
             return False
         else:
             if data:
+                if not self.Remote:
+                    self.killprocess()
                 return data
             else:
                 return False
@@ -91,7 +110,7 @@ class AlphaBetaActuator:
 
                 self.aiutils = BaseAI(board, self.AIStoneType)
                 hashtable_size = []
-                print("*" * 10)
+                #print("*" * 10)
                 self.Zobrist_Hash_Table = []
                 for depth in range(1, self.PlyDepth+1):
                     self.TerminalNodes = 0
@@ -99,12 +118,14 @@ class AlphaBetaActuator:
                     self.alphabeta(self.aiutils.duplicateboard(board), startnode, depth, True,
                                    self.OpenSearchRange, self.CurrentDepth)
                     self.CurrentDepth += 1
-                    print("DEPTH", depth, "HASH SIZE:", len(self.Zobrist_Hash_Table))
+                    #print("DEPTH", depth, "HASH SIZE:", len(self.Zobrist_Hash_Table))
                     hashtable_size.append(len(self.Zobrist_Hash_Table))
 
                 best = max(startnode.children, key=lambda x: x.value)
-                print("RESULT:", best.position, best.value, "ITERATIONS:", self.Iterations, "TERMINAL_NODES:", self.TerminalNodes)
+                #print("RESULT:", best.position, best.value, "ITERATIONS:", self.Iterations, "TERMINAL_NODES:", self.TerminalNodes)
                 self.OutputQueue.put(((best.value, best.position), hashtable_size))
+            elif data == "EXIT":
+                break
 
     def alphabeta(self, board, node, depth, ismaximizingplayer, tilesearchrange, originaldepth):
         self.Iterations += 1

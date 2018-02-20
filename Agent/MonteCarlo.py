@@ -2,7 +2,7 @@
 """Monte Carlo Tree Search solution for Gomoku"""
 
 import math
-from Core import BaseAI
+from Agent.Core import BaseAI
 class MCTS(BaseAI):
     def __init__(self, board):
         super().__init__(self, board)

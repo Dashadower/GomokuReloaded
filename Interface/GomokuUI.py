@@ -1,12 +1,12 @@
 # -*- coding:utf-8 -*-
-import multiprocessing
 import tkinter
 from tkinter.ttk import Progressbar
 
-import GameManager, configparser
+import Interface.GameManager
+import configparser
 
-import AlphaBetaParallel
-from GameBoard import GameBoard
+import Agent.AlphaBetaParallel
+from Agent.GameBoard import GameBoard
 from Interface.GomokuBoardUI import GomokuBoardUI
 
 
@@ -50,7 +50,7 @@ def onnewgame():
     print(configreader.get("GomokuBot", "MODE"))
     if configreader.get("GomokuBot", "MODE") == "SINGLE":
         print("SINGLE")
-        ai = AlphaBetaParallel.AlphaBeta(gboard,"white", int(configreader.get("GomokuBot", "DIFFICULTY")),
+        ai = Agent.AlphaBetaParallel.AlphaBeta(gboard,"white", int(configreader.get("GomokuBot", "DIFFICULTY")),
                                          int(configreader.get("GomokuBot", "SEARCHRANGE")), int(configreader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS")),
                                          float(configreader.get("GomokuBot", "EA_COEFFICIENT")))
         screen.InfoBox.config(state=tkinter.NORMAL)
@@ -65,7 +65,7 @@ def onnewgame():
                               (configreader.get("GomokuBot", "MAXPROCESSES"),
                                configreader.get("GomokuBot", "MULTIPROCESS_CUTOFF")))
         screen.InfoBox.config(state=tkinter.DISABLED)
-        ai = AlphaBetaParallel.AlphaBeta(gboard, "white", int(configreader.get("GomokuBot", "DIFFICULTY")),
+        ai = Agent.AlphaBetaParallel.AlphaBeta(gboard, "white", int(configreader.get("GomokuBot", "DIFFICULTY")),
                                          int(configreader.get("GomokuBot", "SEARCHRANGE")),int(configreader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS")),
                                          float(configreader.get("GomokuBot", "EA_COEFFICIENT")))
         result = ai.initiateprocess()
@@ -75,7 +75,7 @@ def onnewgame():
         screen.InfoBox.insert(tkinter.END, "%s PID %s\n"%(processes, pids))
         screen.InfoBox.config(state=tkinter.DISABLED)
         
-    mgr = GameManager.GameManager(root, ai, screen.GomokuBoard, screen.InfoBox, screen.progressbar, pids)
+    mgr = Interface.GameManager.GameManager(root, ai, screen.GomokuBoard, screen.InfoBox, screen.progressbar, pids)
     root.protocol("WM_DELETE_WINDOW", mgr.end)
     add_menu(lambda: newgame_handler(mgr._endprocess))
     ai.ReportHook = mgr.writetotext
@@ -97,10 +97,8 @@ def add_menu(func):
 
 
 def externmodulecall(setting_path=None):
-    multiprocessing.freeze_support()
     global root, configreader
     root = tkinter.Tk()
-    print(setting_path)
     configreader = configparser.RawConfigParser()
     configreader.read(setting_path)
     MainScreen(root, GameBoard(int(configreader.get("GomokuBot", "BOARDSIZE_X")), int(configreader.get("GomokuBot", "BOARDSIZE_X"))),

@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 
-import GameBoard
+import Agent.GameBoard
 
 
 class BaseAI:
@@ -8,7 +8,7 @@ class BaseAI:
     def __init__(self, board, aistonetype):
         self.Board = board
         self.AIStoneType = aistonetype
-        self.Matrix = GameBoard.generate_random_matrix(self.Board.Size[0])
+        self.Matrix = Agent.GameBoard.generate_random_matrix(self.Board.Size[0])
 
     def getopenmoves(self):
         openmoves = []
@@ -43,7 +43,7 @@ class BaseAI:
         self.Board.addstone(position, "white" if self.AIStoneType == "black" else "black")
 
     def duplicateboard(self, board):
-        g = GameBoard.GameBoard(board.Size[0], board.Size[1])
+        g = Agent.GameBoard.GameBoard(board.Size[0], board.Size[1])
         for bstone in board.BlackStones:
             g.addstone(bstone, "black")
 
@@ -57,7 +57,7 @@ class BaseAI:
 
 
 if __name__ == "__main__":
-    b = GameBoard.GameBoard(15,15)
+    b = Agent.GameBoard.GameBoard(15,15)
     b.addstone((3, 5), "black")
     b.addstone((3, 6), "black")
     g = BaseAI(b, "black")

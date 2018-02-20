@@ -1,4 +1,4 @@
-from FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open2Val, Open3Val, Open4Val, Closed4Val, Open5Val, Open3Val_Ex, Open4Val_Ex, Closed4Val_Ex
+from Agent.FilterStrings import Open2, Open3, Open4, Open5, Closed4, Open2Val, Open3Val, Open4Val, Closed4Val, Open5Val, Open3Val_Ex, Open4Val_Ex, Closed4Val_Ex
 
 
 class Analyzer:
