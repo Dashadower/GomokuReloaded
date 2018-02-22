@@ -25,7 +25,7 @@ class AlphaBeta(BaseAI):
 
         self.Remote = remote
 
-    def startalphabeta(self):
+    def start(self):
         if self.Remote:
             return self.initiateprocess()
         else:

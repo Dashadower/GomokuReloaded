@@ -6,8 +6,7 @@ Default(No arguments give): Open UI
 -nogui              Dont spawn window(default)
 -stdcomm            Use standard i/o for interaction
 -socket addr port   Use socket for interaction
--mcts               Use MCTS(default)
--maxtimem seconds   maximum time limit for each move(MCTS)
--maxtime seconds    maximum total time limit for thinking(MCTS)
+-mcts               Use MCTS(Alpha Beta Pruning is the default)
+-maxtime seconds    maximum time limit for each move(MCTS)
 -maxsims sims       maximum simulations for each move(MCTS)
 -debug              print debug info to stdout

@@ -6,7 +6,7 @@ import configparser
 from Agent.AlphaBetaParallel import AlphaBeta
 from Agent.GameBoard import GameBoard
 from Interface.GomokuUI import externmodulecall
-
+from Agent.MonteCarlo import MCTS
 helpmsg = """Console commands for GomokuBot:
 boardsize x y             Override the config file and sets the board size to x, y
 start                     Starts a game with the Player playing black(first)
@@ -35,6 +35,7 @@ class InputHandler:
         self.BoardSize_Y = int(self.ConfigReader.get("GomokuBot", "BoardSize_Y"))
         self.Difficulty = int(self.ConfigReader.get("GomokuBot", "DIFFICULTY"))
         self.TileSearchRange = int(self.ConfigReader.get("GomokuBot", "SEARCHRANGE"))
+        self.MCTSTimeLimit = int(self.ConfigReader.get("GomokuBot", "TIMELIMIT"))
         self.RunRemote = True if self.ConfigReader.get("GomokuBot", "MODE") == "MULTIPROCESS" else False
         self.Use_XTA = True if self.ConfigReader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS") == "1" else False
         self.XTA_Coefficient = float(self.ConfigReader.get("GomokuBot", "EA_COEFFICIENT"))
@@ -55,22 +56,27 @@ class InputHandler:
                 print(helpmsg)
             elif inputcmd == "exit":
                 if self.AI:
-                    self.AI.killprocess()
+                    if self.RunRemote:
+                        self.AI.killprocess()
                 sys.exit(0)
             elif inputcmd == "start":
                 self.GameBoard = GameBoard(self.BoardSize_X, self.BoardSize_Y)
                 if self.AI and self.RunRemote:
                     self.AI.killprocess()
-                self.AI = AlphaBeta(self.GameBoard, "white", self.Difficulty, self.TileSearchRange, self.Use_XTA,
-                                    self.XTA_Coefficient, self.RunRemote)
+                if not self.MCTSMode:
+                    self.AI = AlphaBeta(self.GameBoard, "white", self.Difficulty, self.TileSearchRange, self.Use_XTA,
+                                        self.XTA_Coefficient, self.RunRemote)
+                elif self.MCTSMode:
+                    self.AI = MCTS(self.GameBoard, "white", self.MCTSTimeLimit, self.RunRemote)
                 if self.RunRemote:
-                    self.AI.startalphabeta()
+                    self.AI.start()
             elif inputcmd == "cpuplay":
                 if self.Turn == "cpu":
                     if not self.RunRemote:
-                        self.AI.startalphabeta()
+                        self.AI.start()
                     self.AI.choosemove()
                     while True:
+                        print("yelp")
                         result = self.AI.getresult()
                         if result:
                             movedata, hashdata = result[0], result[1]
@@ -82,8 +88,14 @@ class InputHandler:
                     print("Invalid turn")
             elif inputcmd == "stoneinfo":
                 if self.GameBoard:
-                    print(" ".join([str(x for x in self.GameBoard.BlackStones)]))
-                    print(" ".join([str(x for x in self.GameBoard.WhiteStones)]))
+                    bs = []
+                    ws = []
+                    for x in self.GameBoard.BlackStones:
+                        bs.append(str(x))
+                    for x in self.GameBoard.WhiteStones:
+                        ws.append(str(x))
+                    print("".join(bs))
+                    print("".join(ws))
                 else:
                     print("No game started")
             elif "placestone" in inputcmd:
