@@ -105,6 +105,7 @@ class GomokuBoardUI(tkinter.Frame):
                     self.GameBoard.addstone(gridpos, self.GameBoard.Turn)
             self.clear()
             self.draw()
+
     def lockscreen(self):
         self.PlayerTurn = False
 
@@ -116,5 +117,4 @@ if __name__ == "__main__":
     boardui = GomokuBoardUI(board, root, None)
     boardui.PlayerTurn = True
     boardui.draw()
-
     root.mainloop()

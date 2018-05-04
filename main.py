@@ -2,44 +2,44 @@ import argparse
 import sys
 import multiprocessing
 import os
-import configparser
+from ConfigReader import ConfigReader
 from Agent.AlphaBetaParallel import AlphaBeta
 from Agent.GameBoard import GameBoard
 from Interface.GomokuUI import externmodulecall
 from Agent.MonteCarlo import MCTS
 helpmsg = """Console commands for GomokuBot:
-boardsize x y             Override the config file and sets the board size to x, y
-start                     Starts a game with the Player playing black(first)
-placestone x y            Place a player stone at position x y
-cpuplay                   Makes the Computer return a move
-stoneinfo                 Returns a list of black stones on one line, and white stones on the next line
-endgame                   Terminates an existing game
-exit                      Exits GomokuBot
+boardsize x y               Override the config file and sets the board size to x, y
+start                       Starts a game with the Player playing black(first)
+placestone x y or ps x y    Place a player stone at position x y
+cpuplay                     Makes the Computer return a move
+stoneinfo                   Returns a list of black stones on one line, and white stones on the next line
+endgame                     Terminates an existing game
+exit                        Exits GomokuBot
 Note that commands cannot be run on the computer's turn if MODE is set to singleprocess
 """
 
 class InputHandler:
     def __init__(self, cmdargv, configpath):
+        self.AI = None
+        self.GameBoard = None
+        self.Turn = "player"
+        self.Config = ConfigReader(configpath)
+        self.MCTSMode = True if self.Config.retrieve("AIMODE") == "MCTS" else False
+        self.BoardSize_X = self.Config.retrieve("BOARDSIZE_X")
+        self.BoardSize_Y = self.Config.retrieve("BOARDSIZE_Y")
+        self.Difficulty = self.Config.retrieve("DIFFICULTY")
+        self.TileSearchRange = self.Config.retrieve("SEARCHRANGE")
+        self.MCTSTimeLimit = self.Config.retrieve("TIMELIMIT")
+
+        self.Use_XTA = True if self.Config.retrieve("USE_EXTENSIVE_ANALYSIS") == "1" else False
+        self.XTA_Coefficient = self.Config.retrieve("EA_COEFFICIENT")
+
         self.cmdargv = vars(cmdargv)
         self.DebugMode = self.cmdargv["debug"]
         self.MCTSMode = self.cmdargv["mcts"]
         self.HideConsole = self.cmdargv["noconsole"]
         self.HideGUI = self.cmdargv["nogui"]
-        self.AI = None
-        self.GameBoard = None
-        self.Turn = "player"
-        self.ConfigReader = configparser.RawConfigParser()
-        self.ConfigReader.read(configpath)
-
-        self.BoardSize_X = int(self.ConfigReader.get("GomokuBot", "BoardSize_X"))
-        self.BoardSize_Y = int(self.ConfigReader.get("GomokuBot", "BoardSize_Y"))
-        self.Difficulty = int(self.ConfigReader.get("GomokuBot", "DIFFICULTY"))
-        self.TileSearchRange = int(self.ConfigReader.get("GomokuBot", "SEARCHRANGE"))
-        self.MCTSTimeLimit = int(self.ConfigReader.get("GomokuBot", "TIMELIMIT"))
-        self.RunRemote = True if self.ConfigReader.get("GomokuBot", "MODE") == "MULTIPROCESS" else False
-        self.Use_XTA = True if self.ConfigReader.get("GomokuBot", "USE_EXTENSIVE_ANALYSIS") == "1" else False
-        self.XTA_Coefficient = float(self.ConfigReader.get("GomokuBot", "EA_COEFFICIENT"))
-
+        self.RunRemote = self.cmdargv["remote"]
         if self.cmdargv["stdcomm"]:
             self.IOMethod = "STDIO"
         elif self.cmdargv["silent"]:
@@ -71,21 +71,24 @@ class InputHandler:
                 if self.RunRemote:
                     self.AI.start()
             elif inputcmd == "cpuplay":
-                if self.Turn == "cpu":
-                    if not self.RunRemote:
-                        self.AI.start()
-                    self.AI.choosemove()
-                    while True:
-                        print("yelp")
-                        result = self.AI.getresult()
-                        if result:
-                            movedata, hashdata = result[0], result[1]
-                            break
-                    self.GameBoard.addstone(movedata[1], "white")
-                    print(movedata[1][0], movedata[1][1])
-                    self.Turn = "player"
+                if self.GameBoard:
+                    if self.Turn == "cpu":
+                        if not self.RunRemote:
+                            self.AI.start()
+                        self.AI.choosemove()
+                        while True:
+                            result = self.AI.getresult()
+                            if result:
+                                movedata, hashdata = result[0], result[1]
+                                break
+                        self.GameBoard.addstone(movedata[1], "white")
+                        print(movedata[1][0], movedata[1][1])
+                        sys.stdout.flush()
+                        self.Turn = "player"
+                    else:
+                        print("Invalid turn")
                 else:
-                    print("Invalid turn")
+                    print("No game started")
             elif inputcmd == "stoneinfo":
                 if self.GameBoard:
                     bs = []
@@ -98,11 +101,13 @@ class InputHandler:
                     print("".join(ws))
                 else:
                     print("No game started")
-            elif "placestone" in inputcmd:
+            elif "placestone" in inputcmd or "ps" in inputcmd:
                 if len(inputcmd.split()) != 3:
                     print("Missing parameters")
                 elif self.Turn == "cpu":
                     print("Invalid Turn")
+                elif not self.GameBoard:
+                    print("Game does not exist")
                 else:
                     x, y = inputcmd.split()[1], inputcmd.split()[2]
                     if x.isdigit() and y.isdigit():
@@ -140,12 +145,15 @@ if __name__ == "__main__":
                         help="Do not ever spawn the GUI (default)")
     parser.add_argument("-noconsole", action="store_true", default=False, dest="noconsole",
                         help="Do not even show the console (Use with caution)")
+    parser.add_argument("-remote", action="store_true", default=False, dest="remote",
+                        help="Run calculations on a separate process; nonblocking mode")
     parser.add_argument("-socket", nargs=2, type=str, dest="socket",
                         help="Use a socket connection instead of std i/o.", metavar=("address", "port"))
     parser.add_argument("-mcts", action="store_true", default=False, dest="mcts",
                         help="Use MCTS algorithm instead of Alpha-Beta")
     parser.add_argument("-debug", action="store_true", default=False, dest="debug",
                         help="Display debug info in stdout")
+
     if len(sys.argv) == 1:
         print("No additional arguments specified")
         usrinput = input("Would you like to run the User Interface Instead?(Y/N)")
@@ -154,6 +162,5 @@ if __name__ == "__main__":
                 os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.config").replace("\\", "/"))
         else:
             print("Running in console mode. Waiting for input...")
-
     InputHandler(parser.parse_args(sys.argv[1:]),
                  os.path.join(os.path.dirname(os.path.realpath(__file__)), "settings.config").replace("\\", "/"))

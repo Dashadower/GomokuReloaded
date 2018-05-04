@@ -56,7 +56,7 @@ class AlphaBeta(BaseAI):
         """Return data type:
         ((bestmove_eval, bestmove_position_tuple), hashtable_size)"""
         try:
-            data = self.Actuator2ThisQ.get_nowait()
+            data = self.Actuator2ThisQ.get_nowait()  # ((move_value, position), hashtable_size)
         except Empty:
             return False
         else:

@@ -8,7 +8,6 @@ import signal
 import os
 import time
 import random
-import sys
 from queue import Empty
 from Agent.AnalyzerOptimized import WinChecker
 
@@ -78,7 +77,7 @@ class MCTS(BaseAI):
         """Return data type:
         ((bestmove_eval, bestmove_position_tuple), hashtable_size)"""
         try:
-            data = self.Actuator2ThisQ.get_nowait()
+            data = self.Actuator2ThisQ.get_nowait()  # ((simulation_count, position), None)
         except Empty:
             return False
         else:
@@ -106,13 +105,20 @@ class MCTSActuator:
                 self.runmcts(startnode)
                 best = max(startnode.Children, key=lambda x: x.Simulations)
                 print("GOT", best.Position, startnode.Simulations)
-                self.OutputQueue.put(((best.Simulations, best.Position), None))
+                for node in startnode.Children:
+                    print(node.Position, node.Simulations)
+                self.OutputQueue.put(((startnode.Simulations, best.Position), None))
             elif data == "EXIT":
                 break
+
+    def run_mainloop(self, tk):
+        tk.mainloop()
 
     def runmcts(self, startnode):
         starttime = time.time()
         node = startnode
+        iters = 0
+
         while True:
             if time.time() - starttime > self.TimeLimit:
                 break
@@ -127,7 +133,7 @@ class MCTSActuator:
                 if boardg.getlimitedopenmoves(node.GameState):
                     m = random.choice(boardg.getlimitedopenmoves(node.GameState))
                     newb.addstone(m, newb.Turn)
-                    g = Node(m,newb, parent=node)
+                    g = Node(m, newb, parent=node)
                     newb = boardg.duplicateboard(newb)
                     node = g
                     result = 0
@@ -143,9 +149,12 @@ class MCTSActuator:
                                 break
                             else:
                                 break
+
                         else:
                             break
                     node.update(result)
+            iters += 1
+        print("iters", iters)
         return 0
 
 

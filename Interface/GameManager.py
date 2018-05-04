@@ -9,7 +9,7 @@ import tkinter.messagebox
 
 
 class GameManager:
-    def __init__(self, mainui, aiobject, gboard, textfield, progressbar, pids):
+    def __init__(self, mainui, aiobject, gboard, textfield, progressbar, pids, aimode):
         self.MainUI = mainui
         self.TextField = textfield
         self.progressbar = progressbar
@@ -19,11 +19,15 @@ class GameManager:
         self.AIStoneType = self.AI.AIStoneType
         self.PlayerStoneType = "black" if self.AIStoneType == "white" else "white"
         self.refree = Agent.AnalyzerOptimized.WinChecker(self.AI.Board)
+        self.IsAlphaBeta = True if aimode == "ALPHABETA" else False
         self.StartTime = None
         self.CalcTime = None
 
     def start(self):
-        self.writetotext("Search depth: "+str(self.AI.PlyDepth)+" Depth(PLY) Search Range: "+str(self.AI.OpenSearchRange)+"tiles")
+        if self.IsAlphaBeta:
+            self.writetotext("Alpha-Beta Search depth: "+str(self.AI.PlyDepth)+" Depth(PLY) Search Range: "+str(self.AI.OpenSearchRange)+"tiles")
+        else:
+            self.writetotext("Monte Carlo Tree search simulation time: %d seconds"%(self.AI.TimeLimit))
         tkinter.messagebox.showinfo("", "Player's turn")
         self.GomokuBoard.PlayerTurn = True
         self.StartTime = time.time()
@@ -86,15 +90,18 @@ class GameManager:
         else:
             self.writetotext("AI Move Recieved")
             self.progressbar.stop()
-            x = 1
-            for item in data[1]:
-                self.writetotext("Depth %d hashtable size: %d"%(x, item))
-                x += 1
-            self.writetotext("Evaluation Function value(Grader()):"+str(data[0][0])+" 위치:"+str(data[0][1]))
-            self.AI.addaistone(data[0][1])
-            if data[0][0] >= 9900000:
+            if self.IsAlphaBeta:
+                x = 1
+                for item in data[1]:
+                    self.writetotext("Depth %d hashtable size: %d"%(x, item))
+                    x += 1
+                self.writetotext("Evaluation Function value(Grader()):"+str(data[0][0])+" 위치:"+str(data[0][1]))
 
-                self.writetotext("Computer is to win for certain ^^")
+                if data[0][0] >= 9900000:
+                    self.writetotext("Computer is to win for certain ^^")
+            else:
+                self.writetotext("Total number of simulations: %d"%(data[0][0]))
+            self.AI.addaistone(data[0][1])
             self.writetotext("Total game time(including input/output):" + str(time.time() - self.CalcTime))
             self.GomokuBoard.clear()
             self.GomokuBoard.draw()

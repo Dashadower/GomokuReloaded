@@ -1,0 +1,7 @@
+MCTS iterations within 10 seconds:
+----------------------------------
+220~225
+Default
+-
+110~112
+-
