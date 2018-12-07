@@ -1,14 +1,9 @@
 # GomokuReloaded
-My second attempt at creating a Gomoku agent.
+MiniMand Monte-Carlo Tree Search based Gomoku playing agent.
 
 Difference from GomokuBot:
+- Usage of MCTS. Now this agent can use MCTS to decide an optimal move
 
-~~1. I'm trying to implement the Monte Carlo Tree search method, instead of the alpha-beta.
-It seems better, both time effeciently and performance wise.~~
-Scratch that. I'm sticking to MiniMax until I have it completely down.
+- Genetic Algorithm in Evaluation Function. Genetic Algorithms have been used to optimize weights within the Evaluation Function
 
-1-1. Alpha-Beta Pruning with using machine larning techniques for the evaluation function is being considered.
-
-2. Optimization and standarization of code.
-GomokuBot's code is very messy, and extremely buggy. GR will have better support with other gomoku renders, and provide support with Gomocup Protocol.
-
+I was able to do a presentation at 8th KSCY, Yonsei University, 2018, "Implementation and Optimization of a Gomoku-playing Agent using Tree Searching"
