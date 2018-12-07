@@ -1,5 +1,5 @@
 # GomokuReloaded
-MiniMand Monte-Carlo Tree Search based Gomoku playing agent.
+MiniMax, Monte-Carlo Tree Search based Gomoku playing agent.
 
 Difference from GomokuBot:
 - Usage of MCTS. Now this agent can use MCTS to decide an optimal move
